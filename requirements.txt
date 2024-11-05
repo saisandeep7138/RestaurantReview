@@ -1,0 +1,19 @@
+#basic dependencies
+requests
+streamlit
+
+#OPENAI API Client
+OPENAI
+
+#pinecone client for vector database
+pinecone-client
+
+#langchain for llm integration and document processing
+langchain
+
+#sentence-transformers
+sentence-transformers
+
+#langsmith for managing langchain experiements and feedback
+langsmith
+
