@@ -17,3 +17,4 @@ sentence-transformers
 #langsmith for managing langchain experiements and feedback
 langsmith
 
+python-dotenv
