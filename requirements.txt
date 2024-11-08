@@ -18,3 +18,9 @@ sentence-transformers
 langsmith
 
 python-dotenv
+
+geopy
+
+nltk
+
+langchain_community
