@@ -32,6 +32,7 @@ def generate_recommendation_response(query, recommendations):
     You are a helpful assistant. You are given a query and some recommendations related to restaurants. 
     Please provide a detailed response to the query, using the information provided in the recommendations.
     Also provide the answer in bullet points 
+    ->Strictly check if the item present in the query is a vegetarian item or a non-vegetarian item if vegetarian provide items similar to it or related to it. If item is non-vegetarian provide related non-vegetarian items or similar items
 
     Query: {query}
 
@@ -68,6 +69,6 @@ def generate_recommendation_response(query, recommendations):
 #     response = generate_recommendation_response(query, recommendations)
 #     print(response.content)
 
-if __name__=="__main__":
-    query="provide me some best restaurants in lb nagar for biryani"
-    print(get_city(query))
+# if __name__=="__main__":
+#     query="provide me some best restaurants in lb nagar for biryani"
+#     print(get_city(query))

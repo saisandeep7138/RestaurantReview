@@ -63,7 +63,7 @@ def get_recommendations(query):
     print(f"The chunks we got from restaurant data:\n{chunks}")
 
     #step5:embed and store chunks
-    embed_and_store_chunks(chunks)
+    embed_and_store_chunks(chunks,location=city)
 
 
 
@@ -73,23 +73,24 @@ def get_recommendations(query):
     for match in similar_chunks:
         restaurant_name = match['restaurant_name']
         text = match['text']
-        
+        #location=match['location']
         if restaurant_name not in grouped_texts:
             grouped_texts[restaurant_name] = []
         
         grouped_texts[restaurant_name].append(text)
+        #grouped_texts[restaurant_name].append(location)
         
-    # print(similar_chunks)
+    #print(similar_chunks)
 
     # Prepare the formatted recommendation string
     recommendations = ""
-    for restaurant_name, texts in grouped_texts.items():
-        recommendations += f"{restaurant_name}:\n" + "\n".join(texts) + "\n\n"
+    for restaurant_name, texts,in grouped_texts.items():
+        recommendations += f"{restaurant_name}:\n" + "\n".join(texts) +"\n\n"
 
     print(f"The whole data which we'll be sending to the LLM is :\n{recommendations}")
 
     return  query,recommendations
 
 # if __name__=="__main__":
-#     query="provide best restaurants in lb nagar for biryani"
+#     query="provide best restaurants in jubliee hills for biryani"
 #     get_recommendations(query)

@@ -17,7 +17,10 @@ if st.button("Get Recommendations"):
     if query:
         with st.spinner('Processing your request...'):
             # Call the function to get restaurant recommendations
+
             query, recommendations = get_recommendations(query)
+            print(query)
+            print(recommendations)
             
             # Check if the city was correctly extracted and handle any error
             # if isinstance(query, str):  # Check if an error message is returned
