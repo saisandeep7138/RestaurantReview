@@ -1,96 +1,74 @@
-# recommendation_chain.py
-import openai 
-from langchain.llms import OpenAI
-import os
 from dotenv import load_dotenv
 from langchain.prompts.prompt import PromptTemplate
-from langchain_openai.chat_models import ChatOpenAI
-from langchain.chains import LLMChain
-from geopy.geocoders import Nominatim
-from Data_processing.data_fetcher import fetch_restaurant_reviews
-from Data_processing.data_processor import process_reviews_to_chunks,embed_and_store_chunks,search_similar_embeddings
-from Data_processing.embedder import get_embeddings
-import re
-from main import get_city
+from langchain_openai import ChatOpenAI
+# from prompts import get_recommendations
 
 # Load environment variables
 load_dotenv()
 
+def get_city(query):
+    """Extracts only the city or street name from the query."""
+    city_template = """
+    Your task is to analyze the provided query and accurately extract any city or street name present within it. 
+    Focus solely on identifying the location name—either a city or a street—and return only this specific name as the output, 
+    without any additional text or labels.
+    Query: {query}
+    """
+    city_prompt_template = PromptTemplate(
+        input_variables=["query"],
+        template=city_template
+    )
+    llm = ChatOpenAI(temperature=0, model_name="gpt-3.5-turbo")
+    chain = city_prompt_template | llm
+    response = chain.invoke(input={"query": query})
+    return response.content.strip()
+    
+    
 
-# Initialize geolocator
-geolocator = Nominatim(user_agent="restaurant_recommender")
+def generate_recommendation_response(query, recommendations):
+    """Generate a detailed recommendation response using LangChain."""
+    # Define the summary template for the LLM
+    summary_template = """
+    You are a helpful assistant. You are given a query and some recommendations related to restaurants. 
+    Please provide a detailed response to the query, using the information provided in the recommendations.
+    Also provide the answer in bullet points 
+    ->Strictly check if the item present in the query is a vegetarian item or a non-vegetarian item if vegetarian provide items similar to it or related to it. If item is non-vegetarian provide related non-vegetarian items or similar items
 
-def extract_city(query):
-    """Extracts the city name from a query using a simple regex."""
-    # match = re.search(r"in (\w+)$", query)
-    # if match:
-    #     return match.group(1)
-    # else:
-    #     return None
-    #let's try to extract the city from the query using llm call
-    response=get_city(query)
-    print(response)
-    return response
+    Query: {query}
 
+    Recommendations:{recommendations}
+    """
 
-def get_recommendations(query):
-    """Processes the user's query and returns restaurant recommendations."""
-    # Step 1: Extract city from query
-    #print(type(query))
-    city = extract_city(query)
-    print(f"The extracted city is {city}")
+    # Create the PromptTemplate instance
+    summary_prompt_template = PromptTemplate(
+        input_variables=["query", "recommendations"], template=summary_template
+    )
 
-    if not city:
-        return "City could not be extracted from the query. Please provide a valid query like 'Good restaurants in [City Name]'."
+    # Initialize the OpenAI LLM
+    llm = ChatOpenAI(temperature=0, model_name="gpt-3.5-turbo")
 
-    # Step 2: Geocode city to get latitude and longitude
-    location = geolocator.geocode(city)
-    print(location)
+    # Chain the prompt template and LLM
+    chain = summary_prompt_template | llm
 
-    if not location:
-        return f"Could not find location for {city}. Please try another city."
+    # Invoke the chain to get the response
+    response = chain.invoke(input={"query": query, "recommendations": recommendations})
 
-    lat, lon = location.latitude, location.longitude
-    location_str = f"{lat},{lon}"
-    print(location_str)
+    return response.content
 
-    # Step 3: Fetch restaurant data
-    restaurant_data = fetch_restaurant_reviews(query, location_str)
-    print(f"The restaurant data is: \n{restaurant_data}")
+# if __name__ == "__main__":
+#     # Define the user query
+#     query = "give me some good restaurants for panner butter masala in hyderabad"
+    
+#     # Call the function to get restaurant recommendations (returns query and recommendations)
+#     query, recommendations = get_recommendations(query)
 
-    # Step 4: Process data into chunks
-    chunks = process_reviews_to_chunks(restaurant_data)
-    print(f"The chunks we got from restaurant data:\n{chunks}")
-
-    #step5:embed and store chunks
-    embed_and_store_chunks(chunks,location=city)
-
-
-
-    # Step 6: Retrieve similar chunks for recommendations
-    similar_chunks = search_similar_embeddings(query)
-    grouped_texts = {}
-    for match in similar_chunks:
-        restaurant_name = match['restaurant_name']
-        text = match['text']
-        #location=match['location']
-        if restaurant_name not in grouped_texts:
-            grouped_texts[restaurant_name] = []
-        
-        grouped_texts[restaurant_name].append(text)
-        #grouped_texts[restaurant_name].append(location)
-        
-    #print(similar_chunks)
-
-    # Prepare the formatted recommendation string
-    recommendations = ""
-    for restaurant_name, texts,in grouped_texts.items():
-        recommendations += f"{restaurant_name}:\n" + "\n".join(texts) +"\n\n"
-
-    print(f"The whole data which we'll be sending to the LLM is :\n{recommendations}")
-
-    return  query,recommendations
+#     # if isinstance(query, str):  # Check for error messages
+#     #     print(query)  # Print the error message
+#     # else:
+#         # Call the function to generate the response based on the recommendations
+#     response = generate_recommendation_response(query, recommendations)
+#     print(response.content)
 
 # if __name__=="__main__":
-#     query="provide best restaurants in jubliee hills for biryani"
-#     get_recommendations(query)
+#     query="provide me some best restaurants in lb nagar for biryani"
+#     print(get_city(query))

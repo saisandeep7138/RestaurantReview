@@ -1,7 +1,7 @@
 import streamlit as st
 from dotenv import load_dotenv
-from prompts import get_recommendations  # Ensure this import is correct
-from main import generate_recommendation_response  # Import the function you created
+from Conversation.get_relevant_data import get_recommendations  # Ensure this import is correct
+from Conversation.prompts import generate_recommendation_response  # Import the function you created
 
 # Load environment variables
 load_dotenv()
