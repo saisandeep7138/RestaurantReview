@@ -9,29 +9,37 @@ load_dotenv()
 # Streamlit app setup
 st.title("Restaurant Query and Recommendations")
 
+# Initialize session state for conversation history
+if 'conversation_history' not in st.session_state:
+    st.session_state.conversation_history = []
+
+# Display conversation history
+for message in st.session_state.conversation_history:
+    if message['role'] == 'user':
+        st.markdown(f"**You:** {message['text']}")
+    elif message['role'] == 'bot':
+        st.markdown(f"**Bot:** {message['text']}")
+
 # User input for the query
-query = st.text_input("Enter a query (e.g., 'Good restaurants for paneer butter masala in Hyderabad')")
+query = st.text_input("Enter your question:")
 
 # Add a button to trigger recommendation generation
-if st.button("Get Recommendations"):
+if st.button("Ask"):
     if query:
         with st.spinner('Processing your request...'):
-            # Call the function to get restaurant recommendations
-
-            query, recommendations = get_recommendations(query)
-            print(query)
-            print(recommendations)
+            # Add user query to conversation history
+            st.session_state.conversation_history.append({"role": "user", "text": query})
             
-            # Check if the city was correctly extracted and handle any error
-            # if isinstance(query, str):  # Check if an error message is returned
-            #     st.error(query)  # Show error message
-            # else:
-                # Call the function to generate the detailed recommendation response based on the recommendations
+            # Call the function to get restaurant recommendations
+            query, recommendations = get_recommendations(query)
+            
+            # Call the function to generate the detailed recommendation response based on the recommendations
             response = generate_recommendation_response(query, recommendations)
-                
-                # Display the detailed response in Streamlit
-            st.success("Here are your restaurant recommendations:")
-            st.write(response)  # Display the response content in Streamlit
+            
+            # Add bot response to conversation history
+            st.session_state.conversation_history.append({"role": "bot", "text": response})
+
+            # Display the updated conversation
+            st.experimental_rerun()  # Re-run to update UI with new conversation content
     else:
         st.warning("Please enter a valid query to get restaurant recommendations.")
-
